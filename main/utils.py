@@ -20,7 +20,8 @@ class dotdict(dict):
 """
 
         self.output_str += f"""
-source_json = dotdict({input_json})
+json_data = {input_json}
+source_json = dotdict(json_data)
 
 target_json = {{}}
 \n
@@ -41,6 +42,8 @@ target_json = {{}}
 
             json_enum_dict = json.loads(enum_dict)
             self.output_str += f"target_json['{target_key}'] = {self.do_operation(source_operation,json_enum_dict)}\n"
+
+            self.output_str += f"print(target_json)"
 
         return self.output_str
 

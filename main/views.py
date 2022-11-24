@@ -20,12 +20,20 @@ class GeneratorAPIView(GenericAPIView):
     serializer_class = UserMappingSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        mapping_file = request.data.get("mapping_file")
+        source_json = request.data.get("source_json")
+
+        if not source_json or not mapping_file:
+            return Response(
+                {"message": "Missing data"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
         obj = GeneratorUtil()
-        res = obj.generate(request.data["json_file"], request.data["csv_file"])
-        # serializer.initial_data["user"] = request.user.id
-        # serializer.is_valid(raise_exception=True)
-        # serializer.save()
+        res = obj.generate(source_json, mapping_file)
+        data = {"user": request.user, "name": mapping_file.name, "script": res}
+        serializer = self.get_serializer(data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response({"message": res}, status=status.HTTP_201_CREATED)
 
 
@@ -51,6 +59,8 @@ class ExecutorAPIView(GenericAPIView):
         except Exception as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        mapping_file = obj.file
+        script = obj.script
+        target_json = {}
+        exec(script)
 
-        return Response({"message": "target json"}, status=status.HTTP_200_OK)
+        return Response({"data": target_json}, status=status.HTTP_200_OK)
