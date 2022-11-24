@@ -12,7 +12,7 @@ from main.serializer import UserMappingSerializer
 
 
 class GeneratorAPIView(GenericAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     parser_classes = [
         MultiPartParser,
     ]
@@ -27,7 +27,7 @@ class GeneratorAPIView(GenericAPIView):
 
 
 class ExecutorAPIView(GenericAPIView):
-    # permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = UserMappingSerializer
     queryset = UserMapping.objects.all()
 
