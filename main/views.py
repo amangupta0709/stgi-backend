@@ -9,6 +9,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, FileUploadParser
 from main.models import UserMapping
 
 from main.serializer import UserMappingSerializer
+from main.utils import GeneratorUtil
 
 
 class GeneratorAPIView(GenericAPIView):
@@ -20,10 +21,12 @@ class GeneratorAPIView(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.initial_data["user"] = request.user.id
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({"message": "Mapping Uploaded"}, status=status.HTTP_201_CREATED)
+        obj = GeneratorUtil()
+        res = obj.generate(request.data["json_file"], request.data["csv_file"])
+        # serializer.initial_data["user"] = request.user.id
+        # serializer.is_valid(raise_exception=True)
+        # serializer.save()
+        return Response({"message": res}, status=status.HTTP_201_CREATED)
 
 
 class ExecutorAPIView(GenericAPIView):
