@@ -11,6 +11,19 @@ from main.models import UserMapping
 from main.serializer import UserMappingSerializer
 from main.utils import GeneratorUtil
 
+from tempfile import NamedTemporaryFile
+import os
+import subprocess
+
+
+class dotdict(dict):
+    def __getattr__(*args):
+        val = dict.get(*args)
+        return dotdict(val) if type(val) is dict else val
+
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
 
 class GeneratorAPIView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
@@ -30,11 +43,11 @@ class GeneratorAPIView(GenericAPIView):
 
         obj = GeneratorUtil()
         res = obj.generate(source_json, mapping_file)
-        data = {"user": request.user, "name": mapping_file.name, "script": res}
-        serializer = self.get_serializer(data)
+        data = {"user": request.user.id, "name": mapping_file.name, "script": res}
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({"message": res}, status=status.HTTP_201_CREATED)
+        return Response({"data": serializer.data}, status=status.HTTP_201_CREATED)
 
 
 class ExecutorAPIView(GenericAPIView):

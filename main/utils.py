@@ -1,4 +1,3 @@
-import pandas as pd
 import json
 
 
@@ -7,15 +6,6 @@ class GeneratorUtil:
         print(input_json)
         self.output_str = """
 import json
-
-class dotdict(dict):
-
-    def __getattr__(*args):
-        val = dict.get(*args)
-        return dotdict(val) if type(val) is dict else val
-
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
 \n
 """
 
@@ -43,7 +33,7 @@ target_json = {{}}
             json_enum_dict = json.loads(enum_dict)
             self.output_str += f"target_json['{target_key}'] = {self.do_operation(source_operation,json_enum_dict)}\n"
 
-            self.output_str += f"print(target_json)"
+        self.output_str += f"print(target_json)\n"
 
         return self.output_str
 
