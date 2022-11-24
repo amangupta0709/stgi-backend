@@ -11,9 +11,9 @@ from main.models import UserMapping
 from main.serializer import UserMappingSerializer
 from main.utils import GeneratorUtil
 
-from tempfile import NamedTemporaryFile
-import os
-import subprocess
+import sys
+from io import StringIO
+import json
 
 
 class dotdict(dict):
@@ -72,8 +72,13 @@ class ExecutorAPIView(GenericAPIView):
         except Exception as e:
             return Response({"message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        script = obj.script
-        target_json = {}
+        script = obj.script % source_json
+
+        old_stdout = sys.stdout
+        redirected_output = sys.stdout = StringIO()
         exec(script)
+        sys.stdout = old_stdout
+
+        target_json = json.loads(redirected_output.getvalue().replace("'", '"').strip())
 
         return Response({"data": target_json}, status=status.HTTP_200_OK)

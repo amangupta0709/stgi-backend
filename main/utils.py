@@ -10,7 +10,7 @@ import json
 """
 
         self.output_str += f"""
-json_data = {input_json}
+json_data = %s
 source_json = dotdict(json_data)
 
 target_json = {{}}
