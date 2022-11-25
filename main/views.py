@@ -16,13 +16,58 @@ from io import StringIO
 import json
 
 
+class objlist(list):
+    @property
+    def item(self):
+        if type(self[0]) is not list and type(self[0]) is not dict:
+            return self
+        keys = set()
+        new_objlist = []
+        for it in self:
+            if type(it) is list:
+                new_objlist.append(it[0])
+            else:
+                new_objlist.append(it)
+
+        for it in new_objlist:
+            for k in it.keys():
+                keys.add(k)
+
+        itemdict = {}
+        for k in keys:
+            itemdict[k] = []
+            for it in new_objlist:
+                v = it.get(k)
+                if v:
+                    itemdict[k].append(v)
+
+        return dotdict(itemdict)
+
+    @property
+    def sum(self):
+        res = 0
+        if len(self) != 0 and type(self[0]) is int:
+            for num in self:
+                res += num
+
+        return res
+
+
 class dotdict(dict):
-    def __getattr__(*args):
-        val = dict.get(*args)
-        return dotdict(val) if type(val) is dict else val
+    __getattr__ = dict.__getitem__
 
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
+
+    def __init__(self, dct):
+        for key, val in dct.items():
+            if type(val) is dict:
+                val = dotdict(val)
+            elif type(val) is list and len(val) != 0:
+                # print(val)
+                val = objlist(val)
+
+            self[key] = val
 
 
 class GeneratorAPIView(GenericAPIView):
@@ -37,6 +82,7 @@ class GeneratorAPIView(GenericAPIView):
         source_json = request.data.get("source_json")
 
         if not source_json or not mapping_file:
+            print("hereeeeeeee")
             return Response(
                 {"message": "Missing data"}, status=status.HTTP_400_BAD_REQUEST
             )
@@ -47,6 +93,8 @@ class GeneratorAPIView(GenericAPIView):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        with open("abcd.py", "w") as file:
+            file.write(res)
         return Response({"data": serializer.data}, status=status.HTTP_201_CREATED)
 
 

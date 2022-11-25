@@ -1,9 +1,9 @@
 import json
+import re
 
 
 class GeneratorUtil:
     def generate(self, input_json, csv_file):
-        print(input_json)
         self.output_str = """
 import json
 \n
@@ -14,6 +14,7 @@ json_data = %s
 source_json = dotdict(json_data)
 
 target_json = {{}}
+
 \n
 """
         file = csv_file.read().decode("utf-8").strip().split("\n")
@@ -29,7 +30,7 @@ target_json = {{}}
             else:
                 enum_dict = data[3].replace('","', ",")
                 self.output_str += f"enums = {enum_dict}\n"
-
+            print(enum_dict)
             json_enum_dict = json.loads(enum_dict)
             self.output_str += f"target_json['{target_key}'] = {self.do_operation(source_operation,json_enum_dict)}\n"
 
@@ -39,27 +40,41 @@ target_json = {{}}
 
     def do_operation(self, source_operation, enum_dict):
         ret_str = ""
-        if source_operation.find("+") != -1:
-            operands = [
-                self.do_operation(i.strip(), enum_dict)
-                for i in source_operation.split("+")
-            ]
-            ret_str += f"{operands[0]}"
-            for op in operands[1:]:
-                ret_str += f" + {op}"
+        source_operation = (
+            source_operation.replace("IF", "if")
+            .replace("ELSEIF", "elif")
+            .replace("ELSE", "else")
+            .replace("ENUM", "enums")
+            .replace("(", " ")
+            .replace(")", "")
+        )
 
-        elif source_operation[:4] == "ENUM":
-            # print(f"source_json{source_operation[5:-1]}")
-            new_data = enum_dict
-            ret_str += f"enums[source_json{source_operation[5:-1]}]"
+        ret_str += source_operation
+        # if source_operation.find("+") != -1:
+        #     operands = [
+        #         self.do_operation(i.strip(), enum_dict)
+        #         for i in source_operation.split("+")
+        #     ]
+        #     ret_str += f"{operands[0]}"
+        #     for op in operands[1:]:
+        #         ret_str += f" + {op}"
 
-        elif source_operation[0] == ".":
-            return f"source_json{source_operation.strip()}"
+        # if source_operation[:4] == "ENUM":
+        #     # print(f"source_json{source_operation[5:-1]}")
+        #     new_data = enum_dict
+        #     ret_str += f"enums[source_json{source_operation[5:-1]}]"
 
-        else:
-            return source_operation.strip()
+        # elif source_operation[:2] == "IF":
+        #     result = re.search("IF(.*)", source_operation)
+        #     print(result.group(1))
 
-            # if(source[0]=='.')
+        # elif source_operation[0] == ".":
+        #     return f"source_json{source_operation.strip()}"
+
+        # else:
+        #     return source_operation.strip()
+
+        # if(source[0]=='.')
 
         return ret_str
 
