@@ -46,8 +46,9 @@ class objlist(list):
     @property
     def sum(self):
         res = 0
-        if len(self) != 0 and type(self[0]) is int:
+        if len(self) != 0:
             for num in self:
+                num = int(num)
                 res += num
 
         return res
@@ -93,8 +94,8 @@ class GeneratorAPIView(GenericAPIView):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        with open("abcd.py", "w") as file:
-            file.write(res)
+        # with open("abcd.py", "w") as file:
+        #     file.write(res)
         return Response({"data": serializer.data}, status=status.HTTP_201_CREATED)
 
 

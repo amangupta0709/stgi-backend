@@ -21,7 +21,6 @@ target_json = {{}}
         for line in file[1:]:
             line = line.rstrip()
             data = [i.strip() for i in line.split(",", 3)]
-            print(data)
 
             target_key = data[1]
             source_operation = data[2]
@@ -30,12 +29,34 @@ target_json = {{}}
             else:
                 enum_dict = data[3].replace('","', ",")
                 self.output_str += f"enums = {enum_dict}\n"
-            print(enum_dict)
             json_enum_dict = json.loads(enum_dict)
-            self.output_str += f"target_json['{target_key}'] = {self.do_operation(source_operation,json_enum_dict)}\n"
+            target_keys = target_key.split(".")
+            idxs = [i for i, val in enumerate(target_keys) if val == "item"]
+            a = 0
+
+            lhs_str = "target_json"
+            last_val_type = "dict"
+            for idx in range(len(target_keys)):
+                if target_keys[idx] == "item":
+                    continue
+                if last_val_type == "dict":
+                    lhs_str += f"['{target_keys[idx]}']"
+                elif last_val_type == "list":
+                    lhs_str += f"[0]['{target_keys[idx]}']"
+                if idx < len(target_keys) - 1:
+                    if a < len(idxs) and idx + 1 == idxs[a]:
+                        self.output_str += lhs_str + " = [{}]\n"
+                        a += 1
+                        last_val_type = "list"
+                    else:
+                        self.output_str += lhs_str + " = {}\n"
+                        last_val_type = "dict"
+
+            self.output_str += (
+                f"{lhs_str} = {self.do_operation(source_operation,json_enum_dict)}\n"
+            )
 
         self.output_str += f"print(target_json)\n"
-
         return self.output_str
 
     def do_operation(self, source_operation, enum_dict):
